@@ -50,5 +50,5 @@
 * Como não implementei a busca de espaços mais adequados, diria que tá 80% completo.
 
 **"O trabalho é original e não a cópia de um trabalho de um colega?"**
-* Prometo que não (fiz 100% sozinho).
+* Prometo que sim (fiz 100% sozinho).
   
