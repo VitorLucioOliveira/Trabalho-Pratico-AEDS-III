@@ -26,7 +26,7 @@
 ##  Checklist 📋
 
 **"O que você considerou como perda aceitável para o reuso de espaços vazios, isto é, quais são os critérios para a gestão dos espaços vazios?"**
-*  Eu utilizei uma abstração de uma lista dentro do arquivo de dados. Na qual um "registro de lixo" armazena um ponteiro para outro "registro de lixo". Por isso, infelizmente, não tive tempo de implementar uma forma de ordenar a lista e assim, conseguir gerir os espaços que sobram ao reusar um registro.
+*  Eu utilizei uma abstração de uma lista dentro do arquivo de dados. Na qual um "registro de lixo" armazena um ponteiro para outro "registro de lixo". Por isso, infelizmente, não tive tempo de implementar uma forma de ordenar a lista e melhor gerir os espaços que sobram ao reusar um registro.
 
 **"O código do CRUD com arquivos de tipos genéricos está funcionando corretamente?"**
 * Sim, ele tá sim.
