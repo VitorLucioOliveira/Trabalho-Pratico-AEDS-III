@@ -18,7 +18,7 @@
 * Sim, a operação DELETE foi mais difícil.
   
 **"Vocês enfrentaram algum desafio na implementação?"**
-* Sim, a implementação mais difícil foi o redirecionamento das 'células lixo' ao serem reusadas;
+* Sim, a implementação mais difícil foi o redirecionamento das 'células lixo' ao serem reusadas. Na abordagem que usei faltou conseguir ordenar de forma crescente a lista abstraida no arquivo;
 
 **"Os resultados foram alcançados?"**
 * Não encontramos nenhum erro nos testes realizados, então com base nisso, o objetivo principal foi concluído.
