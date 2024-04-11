@@ -9,46 +9,45 @@
 
 
 
-##  Observações 💭
+##  Experiência do Grupo 🔍
 
-**"Vocês implementaram todos os requisitos?"**
-* Quase todos, pois falta adicionar métodos para controlar o desperdício do espaço reusado.
+\- **Vitor Lucio**: "A implementação que fizemos se mostrou bastante simples e facil de fazer-se com base nos codigos feitos em sala. A abordagem de abstração de lista foi desafiadora somente em seu raciocínio, enquanto a parte do codigo em si foi bem fuido "
 
-**"Houve alguma operação mais difícil?"**
-* Sim, a operação DELETE foi mais difícil.
+### Vocês implementaram todos os requisitos?
+
+\- **Vitor Lucio**: "Quase todos, pois falta adicionar métodos para controlar o desperdício do espaço reusado. No nosso caso seria somente implementar uma forma de ordenação nos espaçõs vazios."
+
+### Houve alguma operação mais difícil?
+
+\- **Vitor Lucio**: "Sim, a operação DELETE foi mais difícil, sendo ela a base para implementação de lista nos arquivos. A maior parte do tempo foi gasta nela."
   
-**"Vocês enfrentaram algum desafio na implementação?"**
-* Sim, a implementação mais difícil foi o redirecionamento das 'células lixo' ao serem reusadas. Na abordagem que usei faltou conseguir ordenar de forma crescente a lista abstraida no arquivo;
+### Vocês enfrentaram algum desafio na implementação?
+\- **Vitor Lucio**: "Sim, a implementação mais difícil foi o redirecionamento das 'células lixo' ao serem reusadas. Na abordagem que usei faltou conseguir ordenar de forma crescente a lista abstraida no arquivo."
 
-**"Os resultados foram alcançados?"**
-* Não encontramos nenhum erro nos testes realizados, então com base nisso, o objetivo principal foi concluído.
+### Os resultados foram alcançados?
+\- **Vitor Lucio**: "Não encontramos nenhum erro nos testes realizados, então com base nisso, o objetivo principal foi 90% concluído."
   
 ##  Checklist 📋
 
-**"O que você considerou como perda aceitável para o reuso de espaços vazios, isto é, quais são os critérios para a gestão dos espaços vazios?"**
-*  Eu utilizei uma abstração de uma lista dentro do arquivo de dados. Na qual um "registro de lixo" armazena um ponteiro para outro "registro de lixo". Por isso, infelizmente, não tive tempo de implementar uma forma de ordenar a lista e melhor gerir os espaços que sobram ao reusar um registro.
+1. **Gestão de Espaços Vazios:**
+	- [X] Definimos critérios para a gestão de espaços vazios.
 
-**"O código do CRUD com arquivos de tipos genéricos está funcionando corretamente?"**
-* Sim, ele tá sim.
-  
-**"O CRUD tem um índice direto implementado com a tabela hash extensível?"**
-* Não tem não.
+2. **CRUD com Arquivos de Tipos Genéricos:**
+	- [X] O código do CRUD está funcionando corretamente.
 
-**"A operação de inclusão busca o espaço vazio mais adequado para o novo registro antes de acrescentá-lo ao fim do arquivo?"**
-* Infelizmente não, ela busca o espaço vazio aceitalvel não o mais adequado.
+3. **Índice Direto com Tabela Hash Extensível:**
+	- [ ] Implementamos um índice direto com tabela hash extensível.
 
-**"A operação de alteração busca o espaço vazio mais adequado para o registro quando ele cresce de tamanho antes de acrescentá-lo ao fim do arquivo?"**
-* Tambem não, ela busca o primeiro que é aceitavel.
-  
-**"As operações de alteração (quando for o caso) e de exclusão estão gerenciando os espaços vazios para que possam ser reaproveitados?"**
-* Sim, estão sim.
+4. **Operações de Inclusão e Alteração:**
+	- [X] A operação de inclusão busca o espaço vazio "aceitavel".
+	- [X] A operação de alteração gerencia espaços vazios quando o registro cresce.
 
-**"O trabalho está funcionando corretamente?"**
-* Creio que sim.
+5. **Gerenciamento de Espaços Vazios:**
+	- [X] As operações de alteração e exclusão gerenciam espaços vazios para reutilização.
 
-**"O trabalho está completo?"**
-* Como não implementei a busca de espaços mais adequados, diria que tá 80% completo.
+6. **Funcionamento e Originalidade:**
+	- [X] O trabalho está funcionando.
+	- [ ] O trabalho está completo.
+	- [X] O trabalho é original (100%).
 
-**"O trabalho é original e não a cópia de um trabalho de um colega?"**
-* Prometo que sim (fiz 100% sozinho).
   
