@@ -11,7 +11,7 @@
 
 ##  Experiência do Grupo 🔍
 
-\- **Vitor Lucio**: "A implementação que fizemos se mostrou bastante simples e facil de fazer-se com base nos codigos feitos em sala. A abordagem de abstração de lista foi desafiadora somente em seu raciocínio, enquanto a parte do codigo em si foi bem fuido "
+\- **Vitor Lucio**: "A implementação que fizemos se mostrou bastante simples e facil de fazer-se com base nos codigos feitos em sala. A abordagem de abstração de lista foi desafiadora somente em seu raciocínio, enquanto a parte do codigo em si foi bem fluido "
 
 ### Vocês implementaram todos os requisitos?
 
