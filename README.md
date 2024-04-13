@@ -7,7 +7,10 @@
 - Vitor Dias de Britto Militão
 
 
-
+## Descrição📝 
+- Nesse trabalho foi desenvolvido metedos para lidar com os espaços vazios usando como base os codigos desenvolvidos em sala.
+- Nosso grupo implementou uma Lista, que foi abstraida dentro os espaços vazios.
+- Tambem foi criado um pequeno menu, onde há as opções de criar um registro de Livros, deletar um registro de livros usando o id, e uma rotina de testes, que seriam inclusão/exclusão/Inclusão/update de certos registros. 
 
 ##  Experiência do Grupo 🔍
 
