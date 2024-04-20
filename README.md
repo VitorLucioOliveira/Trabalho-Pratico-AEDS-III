@@ -30,7 +30,7 @@
 ### Os resultados foram alcançados?
 \- **Vitor Lucio**: "Não encontramos nenhum erro nos testes realizados, então com base nisso, o objetivo principal foi 90% concluído."
   
-##  Checklist 📋
+##  Checklist Parte 1📋
 
 1. **Gestão de Espaços Vazios:**
 	- [X] Definimos critérios para a gestão de espaços vazios.
