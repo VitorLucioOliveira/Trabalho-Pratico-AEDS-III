@@ -14,24 +14,27 @@
 
 ##  Experiência do Grupo 🔍
 
+### Espaços Vazios (Parte 1)
+
 \- **Vitor Lucio**: "A implementação que fizemos se mostrou bastante simples e facil de fazer-se com base nos codigos feitos em sala. A abordagem de abstração de lista foi desafiadora somente em seu raciocínio, enquanto a parte do codigo em si foi bem fluido "
 
-### Vocês implementaram todos os requisitos?
+####  Vocês implementaram todos os requisitos?
 
 \- **Vitor Lucio**: "Quase todos, pois falta adicionar métodos para controlar o desperdício do espaço reusado. No nosso caso seria somente implementar uma forma de ordenação nos espaçõs vazios."
 
-### Houve alguma operação mais difícil?
+####  Houve alguma operação mais difícil?
 
 \- **Vitor Lucio**: "Sim, a operação DELETE foi mais difícil, sendo ela a base para implementação de lista nos arquivos. A maior parte do tempo foi gasta nela."
   
-### Vocês enfrentaram algum desafio na implementação?
+####  Vocês enfrentaram algum desafio na implementação?
 \- **Vitor Lucio**: "Sim, a implementação mais difícil foi o redirecionamento das 'células lixo' ao serem reusadas. Na abordagem que usei faltou conseguir ordenar de forma crescente a lista abstraida no arquivo."
 
-### Os resultados foram alcançados?
+#### Os resultados foram alcançados?
 \- **Vitor Lucio**: "Não encontramos nenhum erro nos testes realizados, então com base nisso, o objetivo principal foi 90% concluído."
   
-##  Checklist Parte 1📋
+##  Checklist 📋
 
+### Espaços Vazios (Parte 1)
 1. **Gestão de Espaços Vazios:**
 	- [X] Definimos critérios para a gestão de espaços vazios.
 
