@@ -13,4 +13,8 @@ public interface Registro extends Comparable<Object>, Cloneable {
   public int compareTo(Object b);
 
   public Object clone() throws CloneNotSupportedException;
+
+  public String getTitulo();
+
+  public String getIsbn();
 }

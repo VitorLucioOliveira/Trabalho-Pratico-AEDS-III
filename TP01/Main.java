@@ -1,8 +1,10 @@
 
 import java.io.*;
+
 import java.util.Scanner;
 
 import classes.Arquivo;
+
 import classes.Livro;
 
 class Main {
@@ -12,31 +14,28 @@ class Main {
     new File("dados/livros.db").delete();
     new File("dados/livros.hash_d.db").delete();
     new File("dados/livros.hash_c.db").delete();
+    new File("dados/blocos.listainv.db").delete();
+    new File("dados/dicionario.listainv.db").delete();
 
     Arquivo<Livro> arqLivros;
-    Livro l1 = new Livro(-1, "9788563560278", "Odisseia", 15.99F);
-    Livro l2 = new Livro(-1, "9788584290482", "Ensino Híbrido", 39.90F);
-    Livro l3 = new Livro(-1, "9786559790005", "Modernidade Líquida", 48.1F);
-    Livro l4 = new Livro(-1, "9788582714911", "Memória", 55.58F);
-    Livro l5 = new Livro(-1, "9786587150062", "Com Amor", 48.9F);
-
-    int id1, id2, id3, id4, id5;
 
     try {
+
       arqLivros = new Arquivo<>("livros", Livro.class.getConstructor());
       Scanner scan = new Scanner(System.in);
       int pum;
 
       do {
-        System.out.println("------------------------");
+        System.out.println("\n------------------------");
         System.out.println("          MENU");
         System.out.println("------------------------");
 
-        System.out.println("1) Criar Livro");
-        System.out.println("2) Deletar Livro");
-
-        System.out.println("3) Teste de Usabilidade");
-        System.out.println("0) Sair");
+        System.out.println("1 - Inserir Livro");
+        System.out.println("2 - Excluir Livro");
+        System.out.println("3 - Buscar Livro");
+        System.out.println("4 - Alterar Livro");
+        System.out.println("5 - Imprimir Lista");
+        System.out.println("0 - Sair");
         System.out.println(" ");
 
         System.out.print("Opção: ");
@@ -53,15 +52,18 @@ class Main {
 
           case 1:
 
-            System.out.println("\n------------------------");
-            System.out.println("     Criando Livro");
+            System.out.println("------------------------");
+            System.out.println("     Inserir Livro");
             System.out.println("------------------------");
 
-            System.out.print("\nISBN: ");
-            String numero = scan.next();
+            // Limpar buffer
+            scan.nextLine();
+
+            System.out.print("ISBN: ");
+            String numero = scan.nextLine();
 
             System.out.print("Titulo: ");
-            String titulo = scan.next();
+            String titulo = scan.nextLine();
 
             System.out.print("Preço: ");
             float preco = scan.nextFloat();
@@ -74,11 +76,11 @@ class Main {
             break;
 
           case 2:
-            System.out.println("\n------------------------");
-            System.out.println("     Deletando Livro");
+            System.out.println("------------------------");
+            System.out.println("     Excluindo Livro");
             System.out.println("------------------------");
 
-            System.out.print("\nID do Livro: ");
+            System.out.print("ID do Livro: ");
             int id = scan.nextInt();
 
             if (arqLivros.delete(id))
@@ -87,56 +89,56 @@ class Main {
               System.out.println("Livro de ID " + id + " não encontrado!\n");
 
             break;
-
           case 3:
-          System.out.println("\n------------------------");
-          System.out.println("  Teste de Usabilidade");
-          System.out.println("------------------------\n");
+            System.out.println("------------------------");
+            System.out.println("     Buscando Livro");
+            System.out.println("------------------------");
+            System.out.print("Chave de Busca: ");
 
+            // Limpar buffer
+            scan.nextLine();
 
-            // teste de inclusão
-            id1 = arqLivros.create(l1);
-            System.out.println("Livro criado ID: " + id1);
-
-            id2 = arqLivros.create(l2);
-            System.out.println("Livro criado ID: " + id2);
-
-            id3 = arqLivros.create(l3);
-            System.out.println("Livro criado ID: " + id3);
-
-            // teste de exclusão
-            if (arqLivros.delete(id3))
-              System.out.println("Livro de ID " + id3 + " excluído!");
-            else
-              System.out.println("Livro de ID " + id3 + " não encontrado!");
-
-            if (arqLivros.delete(id2))
-              System.out.println("Livro de ID " + id2 + " excluído!");
-            else
-              System.out.println("Livro de ID " + id2 + " não encontrado!");
-
-            // teste de inclusão com lixos
-            id4 = arqLivros.create(l4);
-            System.out.println("Livro criado com o ID: " + id4);
-
-            id5 = arqLivros.create(l5);
-            System.out.println("Livro criado com o ID: " + id5);
-
-            // teste de update com lixos
-            l4.setTitulo("Update de Livro");
-            if (arqLivros.update(l4))
-              System.out.println("Livro de ID " + l4.getID() + " alterado!");
-            else
-              System.out.println("Livro de ID " + l4.getID() + " não encontrado!");
-
-            System.out.println("\nLivro 1:\n" + arqLivros.read(1));
-            System.out.println("\nLivro 2:\n" + arqLivros.read(2));
-            System.out.println("\nLivro 3:\n" + arqLivros.read(3));
-            System.out.println("\nLivro 4:\n" + arqLivros.read(4));
-            System.out.println("\nLivro 5:\n" + arqLivros.read(5));
+            // ler as chaves e buscar na lista invertida
+            String chave = scan.nextLine();
+            arqLivros.busca_lista(chave);
 
             break;
 
+          case 4:
+            System.out.println("------------------------");
+            System.out.println("     Alterar Livro");
+            System.out.println("------------------------");
+
+            // Pega o ID do livro pra ter a chave do nome antigo
+            System.out.print("ID do Livro: ");
+            int ida = scan.nextInt();
+            Livro livrin = arqLivros.read(ida);
+
+            if (livrin != null) {
+              // Removendo as chaves antigas da lista invertida
+              arqLivros.deleteChaves(livrin.getTitulo(), ida);
+
+              // Limpar buffer
+              scan.nextLine();
+
+              System.out.print("Novo nome: ");
+              String new_nome = scan.nextLine();
+              livrin.setTitulo(new_nome);
+
+              // Atualiza o livro com o novo nome
+              if (arqLivros.update(livrin))
+                System.out.println("\nLivro alterado com Sucesso!!");
+              else
+                System.out.println("\nLivro não encontrado!!");
+            }
+
+            break;
+
+          case 5:
+
+            arqLivros.printLista();
+
+            break;
         }
       } while (pum != 0);
 

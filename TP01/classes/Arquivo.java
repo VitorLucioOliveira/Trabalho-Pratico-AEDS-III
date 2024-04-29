@@ -1,6 +1,5 @@
 package classes;
 
-
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.EOFException;
@@ -10,8 +9,12 @@ import java.io.FileOutputStream;
 import java.io.RandomAccessFile;
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.regex.Pattern;
+import java.nio.file.*;
+import java.text.Normalizer;
 
 public class Arquivo<T extends Registro> {
 
@@ -24,6 +27,10 @@ public class Arquivo<T extends Registro> {
   protected String Nome = "";// nome do arquivo
 
   protected HashExtensivel<ParIDEndereco> indiceDireto;// obj para manipular o indice direto
+
+  ListaInvertida lista;
+
+  List<String> stopwords;
 
   // --------------Construtor da classe----------------//
   public Arquivo(String nome, Constructor<T> construtor) throws Exception {
@@ -38,6 +45,9 @@ public class Arquivo<T extends Registro> {
      */
 
     file = new RandomAccessFile("dados/" + nome + ".db", "rw");
+    lista = new ListaInvertida(4, "dados/dicionario.listainv.db", "dados/blocos.listainv.db");
+    stopwords = new ArrayList<>();
+    stopwords = Files.readAllLines(Paths.get("stopwords.txt"));
 
     if (file.length() < HEADER_SIZE) {
       file.seek(0);
@@ -52,7 +62,7 @@ public class Arquivo<T extends Registro> {
         "dados/" + nome + ".hash_c.db");
   }
 
-  // -------------------Método CREATE-------------------//
+  // -------------------Métodos Base -------------------//
   public int create(T obj) throws Exception {
 
     // Vai para o inicio do arquivo e Pega o ultimo ID + 1
@@ -72,100 +82,65 @@ public class Arquivo<T extends Registro> {
     // Pega o endereço do primeiro lixo e o lixo anterior ao que a gente vai usar
     long primeiro_lixo = read_lixo();
     long lixo_anterior = busca_lixo(primeiro_lixo, length_registro);
-    
-    
-    //Se tiver, vai para o endereço do lixo anterior e vamos redirecionar o ponteiro
+
+    // Se tiver, vai para o endereço do lixo anterior e vamos redirecionar o
+    // ponteiro
     if (primeiro_lixo != -1 && lixo_anterior != -1) {
-      
+
       // Garante que o lixo anterior não esta no cabeçalho
-      if(lixo_anterior != 4) {
-        lixo_anterior +=3;
+      if (lixo_anterior != 4) {
+        lixo_anterior += 3;
       }
-      
-      // Vai para o endereço do lixo anterior e pega o endereço do  lixo que vamos usar
-      file.seek(lixo_anterior );
+
+      // Vai para o endereço do lixo anterior e pega o endereço do lixo que vamos usar
+      file.seek(lixo_anterior);
       long lixo_usado = file.readLong();
 
       // Vai para o endereço do lixo usado e pega o endereço do próximo lixo
       file.seek(lixo_usado + 3);
       long proximo_lixo = file.readLong();
-      
+
       // Redirecionamos lixo_anterior ---> proximo_lixo
-      file.seek(lixo_anterior );
+      file.seek(lixo_anterior);
       file.writeLong(proximo_lixo);
-      
+
       // Criamos o registro no endereço do lixo usado
       file.seek(lixo_usado);
       file.writeByte(' ');
       file.readShort();
       file.write(registro);
+
+      // Pegar chaves e adiconar na lista invertida
+      ArrayList<String> chaves = getChaves(obj.getTitulo());
+      createChaves(chaves, obj.getID());
+
+      // Adicionamos o registro no indice direto
       indiceDireto.create(new ParIDEndereco(obj.getID(), lixo_usado));
 
     }
-    //Se não vai para o final e salva o endereço
+    // Se não vai para o final e salva o endereço
     else {
-      
+
       file.seek(file.length());
       long endereco_fim = file.getFilePointer();
 
       file.writeByte(' '); // lápide
       file.writeShort(length_registro);
       file.write(registro);
+
+      // Pegar chaves e adiconar na lista invertida
+      ArrayList<String> chaves = getChaves(obj.getTitulo());
+      for (String chave : chaves) {
+        lista.create(chave, obj.getID());
+      }
+
+      // Adicionamos
       indiceDireto.create(new ParIDEndereco(obj.getID(), endereco_fim));
     }
 
     return obj.getID();
   }
 
-  //-------------------Método BUSCA_LIXO-------------------//
-  private long busca_lixo(long primeiro_lixo, short tamanho_registro) {
-    long endereco = primeiro_lixo;
-    long endereco_anterior = 4; // Inicializa com -1, indicando que não há endereço anterior no início
-
-    try {
-        while (endereco != -1) {
-            file.seek(endereco);
-            file.readByte();
-            short tamanho_lixo = file.readShort();
-
-            if (tamanho_lixo >= tamanho_registro) {
-                
-                return endereco_anterior;
-            }
-
-            // Salva o endereço atual como o endereço anterior
-            endereco_anterior = endereco;
-
-            // Lê o próximo endereço
-            endereco = file.readLong();
-        }
-    } catch (Exception e) {
-        e.printStackTrace();
-    }
-
-    // Retorna o endereço encontrado e o endereço anterior
-    return -1;
-}
-
-  // -------------------Método Primeiro_LIXO-------------------//
-  public long read_lixo() {
-    long result = -1;
-
-    try {
-
-      file.seek(0);
-      file.readInt();
-
-      result = file.readLong();
-      
-
-    } catch (Exception e) {
-      e.printStackTrace();
-    }
-    return result;
-  }
-
-  // -------------------Método READ-------------------//
   public T read(int id) throws Exception {
 
     T obj = Construtor.newInstance();
@@ -191,11 +166,16 @@ public class Arquivo<T extends Registro> {
     return null;
   }
 
-  // -------------------Método DELETE-------------------//
   public boolean delete(int id) throws Exception {
 
     ParIDEndereco pie = indiceDireto.read(id);
     long endereco = pie != null ? pie.getEndereco() : -1;
+
+    // Deletando as chaves da lista invertida
+    T obj = read(id);
+    if (obj != null) {
+      deleteChaves(obj.getTitulo(), id);
+    }
 
     if (endereco != -1) {
 
@@ -237,13 +217,16 @@ public class Arquivo<T extends Registro> {
       return false;
   }
 
-  // -------------------Método UPDATE-------------------//
   public boolean update(T novoObj) throws Exception {
     T obj = Construtor.newInstance();
     short tam, tam2;
     byte[] ba, ba2;
     ParIDEndereco pie = indiceDireto.read(novoObj.getID());
     long endereco = pie != null ? pie.getEndereco() : -1;
+
+    // Adicionado as chaves na lista invertida
+    ArrayList<String> chaves = getChaves(novoObj.getTitulo());
+    createChaves(chaves, novoObj.getID());
 
     if (endereco != -1) {
       file.seek(endereco + 1); // pula o campo lápide
@@ -253,60 +236,103 @@ public class Arquivo<T extends Registro> {
       obj.fromByteArray(ba);
       ba2 = novoObj.toByteArray();
       tam2 = (short) ba2.length;
-      
-      
+
       if (tam2 <= tam) {
         file.seek(endereco + 1 + 2);
         file.write(ba2);
-      }
-      else {
+      } else {
         long primeiro_lixo = read_lixo();
         long lixo_anterior = busca_lixo(primeiro_lixo, tam2);
-        
-        
-        //Se tiver, vai para o endereço do lixo anterior e vamos redirecionar o ponteiro
+
+        // Se tiver, vai para o endereço do lixo anterior e vamos redirecionar o
+        // ponteiro
         if (primeiro_lixo != -1 && lixo_anterior != -1) {
-          
+
           // Garante que o lixo anterior não esta no cabeçalho
-          if(lixo_anterior != 4) {
-            lixo_anterior +=3;
+          if (lixo_anterior != 4) {
+            lixo_anterior += 3;
           }
-          
-          // Vai para o endereço do lixo anterior e pega o endereço do  lixo que vamos usar
-          file.seek(lixo_anterior );
+
+          // Vai para o endereço do lixo anterior e pega o endereço do lixo que vamos usar
+          file.seek(lixo_anterior);
           long lixo_usado = file.readLong();
-    
+
           // Vai para o endereço do lixo usado e pega o endereço do próximo lixo
           file.seek(lixo_usado + 3);
           long proximo_lixo = file.readLong();
-          
+
           // Redirecionamos lixo_anterior ---> proximo_lixo
-          file.seek(lixo_anterior );
+          file.seek(lixo_anterior);
           file.writeLong(proximo_lixo);
-          
+
           // Criamos o registro no endereço do lixo usado
           file.seek(lixo_usado);
           file.writeByte(' ');
           file.readShort();
           file.write(ba2);
           indiceDireto.create(new ParIDEndereco(obj.getID(), lixo_usado));
-    
-        }
-        else{
 
-        file.seek(endereco);
-        file.writeByte('*');
-        file.seek(file.length());
-        long endereco2 = file.getFilePointer();
-        file.writeByte(' ');
-        file.writeShort(tam2);
-        file.write(ba2);
-        indiceDireto.update(new ParIDEndereco(novoObj.getID(), endereco2));
+        } else {
+
+          file.seek(endereco);
+          file.writeByte('*');
+          file.seek(file.length());
+          long endereco2 = file.getFilePointer();
+          file.writeByte(' ');
+          file.writeShort(tam2);
+          file.write(ba2);
+          indiceDireto.update(new ParIDEndereco(novoObj.getID(), endereco2));
+        }
       }
-    }
       return true;
     }
     return false;
+  }
+
+  // -------------------Métodos LIXO------------------//
+  private long busca_lixo(long primeiro_lixo, short tamanho_registro) {
+    long endereco = primeiro_lixo;
+    long endereco_anterior = 4; // Inicializa com -1, indicando que não há endereço anterior no início
+
+    try {
+      while (endereco != -1) {
+        file.seek(endereco);
+        file.readByte();
+        short tamanho_lixo = file.readShort();
+
+        if (tamanho_lixo >= tamanho_registro) {
+
+          return endereco_anterior;
+        }
+
+        // Salva o endereço atual como o endereço anterior
+        endereco_anterior = endereco;
+
+        // Lê o próximo endereço
+        endereco = file.readLong();
+      }
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+
+    // Retorna o endereço encontrado e o endereço anterior
+    return -1;
+  }
+
+  public long read_lixo() {
+    long result = -1;
+
+    try {
+
+      file.seek(0);
+      file.readInt();
+
+      result = file.readLong();
+
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+    return result;
   }
 
   public void close() throws Exception {
@@ -314,7 +340,101 @@ public class Arquivo<T extends Registro> {
     indiceDireto.close();
   }
 
-  
+  // -------------------Métodos ListaInvertida------------------//
+  public ArrayList<String> getChaves(String titulo) {
+
+    String[] chaves = titulo.split(" ");
+
+    // Deixar todas as chaves em minúsculo e com caracteres especiais removidos
+    for (int i = 0; i < chaves.length; i++) {
+      String str = chaves[i].toLowerCase();
+      String nfdNormalizedString = Normalizer.normalize(str, Normalizer.Form.NFD);
+      Pattern pattern = Pattern.compile("\\p{InCombiningDiacriticalMarks}+");
+      chaves[i] = pattern.matcher(nfdNormalizedString).replaceAll("");
+    }
+
+    // Converter o array de chaves em uma lista
+    ArrayList<String> lista_chaves = new ArrayList<>(Arrays.asList(chaves));
+
+    // Removendo as palavras que estão em 'words' da 'lista'
+    for (String chave : stopwords) {
+      if (lista_chaves.contains(chave)) {
+        lista_chaves.remove(chave);
+      }
+    }
+    return lista_chaves;
+  }
+
+  private void createChaves(ArrayList<String> chaves, int id) throws Exception {
+    for (String chave : chaves) {
+      lista.create(chave, id);
+    }
+  }
+
+  public void deleteChaves(String nome, int id) throws Exception {
+    ArrayList<String> chaves = getChaves(nome);
+    for (String chave : chaves) {
+      lista.delete(chave, id);
+    }
+  }
+
+  public void printLista() throws Exception {
+    lista.print();
+  }
+
+  public int[] read_chaves(String chave) throws Exception {
+    return lista.read(chave);
+  }
+
+  public void busca_lista(String chave) throws Exception {
+    ArrayList<String> lista_chaves = getChaves(chave);
+    ArrayList<Integer> achados = new ArrayList<Integer>();
+
+    // Tratamento de Interseção
+    for (String chaves : lista_chaves) {
+      int[] tmp = read_chaves(chaves);
+      for (int achado : tmp) {
+        if (!achados.contains(achado)) {
+          achados.add(achado);
+        }
+      }
+    }
+    // Imprimir Livros
+    if (achados.size() != 0) {
+      for (int i = 0; i < achados.size(); i++) {
+        print_lista_busca(achados.get(i));
+      }
+
+    } else {
+      System.out.println("\nNenhum Livro Encontrado!!");
+    }
+  }
+
+ private void print_lista_busca(int id) throws Exception {
+
+    T obj = Construtor.newInstance();
+    short size_registro;
+    byte[] registro;
+
+    ParIDEndereco pie = indiceDireto.read(id);
+    long endereco = pie != null ? pie.getEndereco() : -1;
+
+    if (endereco != -1) {
+
+      file.seek(endereco + 1); // pula o lápide também
+
+      size_registro = file.readShort();
+      registro = new byte[size_registro];
+
+      // Le a armaneza no objeto
+      file.read(registro);
+      obj.fromByteArray(registro);
+
+      System.out.print("\nTitulo: " + obj.getTitulo() + " ");
+      System.out.print("/ ISBN: " + obj.getIsbn());
+    }
+
+  }
 
   // REORGANIZAR - VERSÃO QUE REORDENA O ARQUIVO, USANDO INTERCALAÇÃO BALANCEADA
   // Recebe um objeto vazio para auxiliar na reorganização
