@@ -6,6 +6,7 @@ import java.io.EOFException;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
@@ -79,47 +80,20 @@ public class Arquivo<T extends Registro> {
     byte[] registro = obj.toByteArray();
     short length_registro = (short) registro.length;
 
+    // Pegar chaves e adiconar na lista invertida
+    ArrayList<String> chaves = getChaves(obj.getTitulo());
+    createChaves(chaves, obj.getID());
+
     // Pega o endereço do primeiro lixo e o lixo anterior ao que a gente vai usar
     long primeiro_lixo = read_lixo();
     long lixo_anterior = busca_lixo(primeiro_lixo, length_registro);
 
-    // Se tiver, vai para o endereço do lixo anterior e vamos redirecionar o
-    // ponteiro
     if (primeiro_lixo != -1 && lixo_anterior != -1) {
 
-      // Garante que o lixo anterior não esta no cabeçalho
-      if (lixo_anterior != 4) {
-        lixo_anterior += 3;
-      }
-
-      // Vai para o endereço do lixo anterior e pega o endereço do lixo que vamos usar
-      file.seek(lixo_anterior);
-      long lixo_usado = file.readLong();
-
-      // Vai para o endereço do lixo usado e pega o endereço do próximo lixo
-      file.seek(lixo_usado + 3);
-      long proximo_lixo = file.readLong();
-
-      // Redirecionamos lixo_anterior ---> proximo_lixo
-      file.seek(lixo_anterior);
-      file.writeLong(proximo_lixo);
-
-      // Criamos o registro no endereço do lixo usado
-      file.seek(lixo_usado);
-      file.writeByte(' ');
-      file.readShort();
-      file.write(registro);
-
-      // Pegar chaves e adiconar na lista invertida
-      ArrayList<String> chaves = getChaves(obj.getTitulo());
-      createChaves(chaves, obj.getID());
-
-      // Adicionamos o registro no indice direto
+      long lixo_usado = tirar_doLixo(lixo_anterior, primeiro_lixo, registro);
       indiceDireto.create(new ParIDEndereco(obj.getID(), lixo_usado));
 
-    }
-    // Se não vai para o final e salva o endereço
-    else {
+    } else {
 
       file.seek(file.length());
       long endereco_fim = file.getFilePointer();
@@ -128,13 +102,6 @@ public class Arquivo<T extends Registro> {
       file.writeShort(length_registro);
       file.write(registro);
 
-      // Pegar chaves e adiconar na lista invertida
-      ArrayList<String> chaves = getChaves(obj.getTitulo());
-      for (String chave : chaves) {
-        lista.create(chave, obj.getID());
-      }
-
-      // Adicionamos
       indiceDireto.create(new ParIDEndereco(obj.getID(), endereco_fim));
     }
 
@@ -199,17 +166,12 @@ public class Arquivo<T extends Registro> {
         file.readShort();
         file.writeLong(-1);
 
+        
+
       } else {
-
-        // No enderoço do registro que vou excluir eu salvo o endereço do primeiro lixo
-        file.seek(endereco);
-        file.readByte();
-        file.readShort();
-        file.writeLong(inicio_lixos);
-
-        // E atualizo o inicio dos lixos com o endereço do registro que exclui
-        file.seek(4);
-        file.writeLong(endereco);
+        // Se tiver lixos, coloca o endereço do registro excluido na lista de lixos
+        colocar_noLixo(endereco, inicio_lixos);  
+        
       }
 
       return true;
@@ -248,29 +210,8 @@ public class Arquivo<T extends Registro> {
         // ponteiro
         if (primeiro_lixo != -1 && lixo_anterior != -1) {
 
-          // Garante que o lixo anterior não esta no cabeçalho
-          if (lixo_anterior != 4) {
-            lixo_anterior += 3;
-          }
-
-          // Vai para o endereço do lixo anterior e pega o endereço do lixo que vamos usar
-          file.seek(lixo_anterior);
-          long lixo_usado = file.readLong();
-
-          // Vai para o endereço do lixo usado e pega o endereço do próximo lixo
-          file.seek(lixo_usado + 3);
-          long proximo_lixo = file.readLong();
-
-          // Redirecionamos lixo_anterior ---> proximo_lixo
-          file.seek(lixo_anterior);
-          file.writeLong(proximo_lixo);
-
-          // Criamos o registro no endereço do lixo usado
-          file.seek(lixo_usado);
-          file.writeByte(' ');
-          file.readShort();
-          file.write(ba2);
-          indiceDireto.create(new ParIDEndereco(obj.getID(), lixo_usado));
+          long lixo_usado = tirar_doLixo(lixo_anterior, primeiro_lixo, ba2);
+          indiceDireto.update(new ParIDEndereco(obj.getID(), lixo_usado));
 
         } else {
 
@@ -333,6 +274,46 @@ public class Arquivo<T extends Registro> {
       e.printStackTrace();
     }
     return result;
+  }
+
+  private void colocar_noLixo(long endereco, long inicio_lixos) throws IOException {
+        // No enderoço do registro que vou excluir eu salvo o endereço do primeiro lixo
+        file.seek(endereco);
+        file.readByte();
+        file.readShort();
+        file.writeLong(inicio_lixos);
+
+        // E atualizo o inicio dos lixos com o endereço do registro que exclui
+        file.seek(4);
+        file.writeLong(endereco);
+
+  }
+
+  private long tirar_doLixo(long lixo_anterior, long primeiro_lixo, byte[] registro) throws IOException {
+    // Garante que o lixo anterior não esta no cabeçalho
+    if (lixo_anterior != 4) {
+      lixo_anterior += 3;
+    }
+
+    // Vai para o endereço do lixo anterior e pega o endereço do lixo que vamos usar
+    file.seek(lixo_anterior);
+    long lixo_usado = file.readLong();
+
+    // Vai para o endereço do lixo usado e pega o endereço do próximo lixo
+    file.seek(lixo_usado + 3);
+    long proximo_lixo = file.readLong();
+
+    // Redirecionamos lixo_anterior ---> proximo_lixo
+    file.seek(lixo_anterior);
+    file.writeLong(proximo_lixo);
+
+    // Criamos o registro no endereço do lixo usado
+    file.seek(lixo_usado);
+    file.writeByte(' ');
+    file.readShort();
+    file.write(registro);
+
+    return lixo_usado;
   }
 
   public void close() throws Exception {
@@ -410,7 +391,7 @@ public class Arquivo<T extends Registro> {
     }
   }
 
- private void print_lista_busca(int id) throws Exception {
+  private void print_lista_busca(int id) throws Exception {
 
     T obj = Construtor.newInstance();
     short size_registro;
