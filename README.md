@@ -22,6 +22,8 @@
   - deleteChaves--> Usada para deletar uma lista de chaves da lista invertida;
   - busca_lista --> Busca na Lista Invertida os ids que possuem chaves correspondentes à chave de busca, nela já há o tratamento de interseções e printa os livros achados;
 
+- Adicionalmente, para ficar mais legivel, seguindo as correções da parte 1, criamos o metodo colocar_noLixo() e tirar_doLixo().
+
 ##  Experiência do Grupo 🔍
 
 ### Espaços Vazios (Parte 1)
@@ -77,7 +79,7 @@
 - [X] Há uma busca por palavras que retorna os livros que possuam essas palavras.
 - [X] Essa busca pode ser feita com mais de uma palavra.
 - [X] As stop words foram removidas de todo o processo.
-- [ ] Fez modificação, se alguma, para além dos requisitos mínimos desta tarefa.
+- [x] Fez modificação, se alguma, para além dos requisitos mínimos desta tarefa.
 - [x] O trabalho está funcionando corretamente
 - [x] O trabalho está completo.
 - [X] O trabalho é original (100%).
