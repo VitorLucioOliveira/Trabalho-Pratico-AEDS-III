@@ -166,12 +166,10 @@ public class Arquivo<T extends Registro> {
         file.readShort();
         file.writeLong(-1);
 
-        
-
       } else {
         // Se tiver lixos, coloca o endereço do registro excluido na lista de lixos
-        colocar_noLixo(endereco, inicio_lixos);  
-        
+        colocar_noLixo(endereco, inicio_lixos);
+
       }
 
       return true;
@@ -277,15 +275,15 @@ public class Arquivo<T extends Registro> {
   }
 
   private void colocar_noLixo(long endereco, long inicio_lixos) throws IOException {
-        // No enderoço do registro que vou excluir eu salvo o endereço do primeiro lixo
-        file.seek(endereco);
-        file.readByte();
-        file.readShort();
-        file.writeLong(inicio_lixos);
+    // No enderoço do registro que vou excluir eu salvo o endereço do primeiro lixo
+    file.seek(endereco);
+    file.readByte();
+    file.readShort();
+    file.writeLong(inicio_lixos);
 
-        // E atualizo o inicio dos lixos com o endereço do registro que exclui
-        file.seek(4);
-        file.writeLong(endereco);
+    // E atualizo o inicio dos lixos com o endereço do registro que exclui
+    file.seek(4);
+    file.writeLong(endereco);
 
   }
 
