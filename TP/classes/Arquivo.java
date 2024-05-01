@@ -154,23 +154,7 @@ public class Arquivo<T extends Registro> {
       file.seek(4);
       Long inicio_lixos = file.readLong();
 
-      if (inicio_lixos == -1) {
-
-        // Se não tiver lixos, salva o endereço do registro excluido
-        file.seek(4);
-        file.writeLong(endereco);
-
-        // Escreve o endereço do lixo final
-        file.seek(endereco);
-        file.writeByte('*');
-        file.readShort();
-        file.writeLong(-1);
-
-      } else {
-        // Se tiver lixos, coloca o endereço do registro excluido na lista de lixos
-        colocar_noLixo(endereco, inicio_lixos);
-
-      }
+      colocar_noLixo(endereco, inicio_lixos);
 
       return true;
     } else
@@ -187,7 +171,6 @@ public class Arquivo<T extends Registro> {
     // Adicionado as chaves na lista invertida
     ArrayList<String> chaves = getChaves(novoObj.getTitulo());
     createChaves(chaves, novoObj.getID());
-
     if (endereco != -1) {
       file.seek(endereco + 1); // pula o campo lápide
       tam = file.readShort();
@@ -208,7 +191,28 @@ public class Arquivo<T extends Registro> {
         // ponteiro
         if (primeiro_lixo != -1 && lixo_anterior != -1) {
 
-          long lixo_usado = tirar_doLixo(lixo_anterior, primeiro_lixo, ba2);
+          // Garante que o lixo anterior não esta no cabeçalho
+          if (lixo_anterior != 4) {
+            lixo_anterior += 3;
+          }
+
+          // Vai para o endereço do lixo anterior e pega o endereço do lixo que vamos usar
+          file.seek(lixo_anterior);
+          long lixo_usado = file.readLong();
+
+          // Vai para o endereço do lixo usado e pega o endereço do próximo lixo
+          file.seek(lixo_usado + 3);
+          long proximo_lixo = file.readLong();
+
+          // Redirecionamos lixo_anterior ---> proximo_lixo
+          file.seek(lixo_anterior);
+          file.writeLong(proximo_lixo);
+
+          // Criamos o registro no endereço do lixo usado
+          file.seek(lixo_usado);
+          file.writeByte(' ');
+          file.readShort();
+          file.write(ba2);
           indiceDireto.update(new ParIDEndereco(obj.getID(), lixo_usado));
 
         } else {
@@ -226,6 +230,11 @@ public class Arquivo<T extends Registro> {
       return true;
     }
     return false;
+  }
+
+  public void close() throws Exception {
+    file.close();
+    indiceDireto.close();
   }
 
   // -------------------Métodos LIXO------------------//
@@ -275,15 +284,31 @@ public class Arquivo<T extends Registro> {
   }
 
   private void colocar_noLixo(long endereco, long inicio_lixos) throws IOException {
-    // No enderoço do registro que vou excluir eu salvo o endereço do primeiro lixo
-    file.seek(endereco);
-    file.readByte();
-    file.readShort();
-    file.writeLong(inicio_lixos);
+    if (inicio_lixos == -1) {
 
-    // E atualizo o inicio dos lixos com o endereço do registro que exclui
-    file.seek(4);
-    file.writeLong(endereco);
+      // Se não tiver lixos, salva o endereço do registro excluido
+      file.seek(4);
+      file.writeLong(endereco);
+
+      // Escreve o endereço do lixo final
+      file.seek(endereco);
+      file.writeByte('*');
+      file.readShort();
+      file.writeLong(-1);
+
+    } else {
+      // Se tiver lixos, coloca o endereço do registro excluido na lista de lixos
+      // No enderoço do registro que vou excluir eu salvo o endereço do primeiro lixo
+      file.seek(endereco);
+      file.readByte();
+      file.readShort();
+      file.writeLong(inicio_lixos);
+
+      // E atualizo o inicio dos lixos com o endereço do registro que exclui
+      file.seek(4);
+      file.writeLong(endereco);
+
+    }
 
   }
 
@@ -314,22 +339,18 @@ public class Arquivo<T extends Registro> {
     return lixo_usado;
   }
 
-  public void close() throws Exception {
-    file.close();
-    indiceDireto.close();
-  }
-
   // -------------------Métodos ListaInvertida------------------//
-  public ArrayList<String> getChaves(String titulo) {
+
+
+public ArrayList<String> getChaves(String titulo) {
 
     String[] chaves = titulo.split(" ");
 
     // Deixar todas as chaves em minúsculo e com caracteres especiais removidos
     for (int i = 0; i < chaves.length; i++) {
-      String str = chaves[i].toLowerCase();
-      String nfdNormalizedString = Normalizer.normalize(str, Normalizer.Form.NFD);
-      Pattern pattern = Pattern.compile("\\p{InCombiningDiacriticalMarks}+");
-      chaves[i] = pattern.matcher(nfdNormalizedString).replaceAll("");
+        String chaveSemAcento = Normalizer.normalize(chaves[i], Normalizer.Form.NFD);
+        Pattern pattern = Pattern.compile("\\p{InCombiningDiacriticalMarks}+");
+        chaves[i] = pattern.matcher(chaveSemAcento).replaceAll("").toLowerCase();
     }
 
     // Converter o array de chaves em uma lista
@@ -337,12 +358,13 @@ public class Arquivo<T extends Registro> {
 
     // Removendo as palavras que estão em 'words' da 'lista'
     for (String chave : stopwords) {
-      if (lista_chaves.contains(chave)) {
-        lista_chaves.remove(chave);
-      }
+        if (lista_chaves.contains(chave)) {
+            lista_chaves.remove(chave);
+        }
     }
     return lista_chaves;
-  }
+}
+
 
   private void createChaves(ArrayList<String> chaves, int id) throws Exception {
     for (String chave : chaves) {
