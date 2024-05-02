@@ -204,10 +204,16 @@ public class Arquivo<T extends Registro> {
           file.seek(lixo_usado + 3);
           long proximo_lixo = file.readLong();
 
-          // Redirecionamos lixo_anterior ---> proximo_lixo
+          // Redirecionamos lixo_anterior ---> endereco
           file.seek(lixo_anterior);
-          file.writeLong(proximo_lixo);
+          file.writeLong(endereco);
 
+          // Redirecionamos endereço e lapidamos---> proximo_lixo
+          file.seek(endereco);
+          file.writeByte('*');
+          file.readShort();
+          file.writeLong(proximo_lixo);
+          
           // Criamos o registro no endereço do lixo usado
           file.seek(lixo_usado);
           file.writeByte(' ');
@@ -341,16 +347,15 @@ public class Arquivo<T extends Registro> {
 
   // -------------------Métodos ListaInvertida------------------//
 
-
-public ArrayList<String> getChaves(String titulo) {
+  public ArrayList<String> getChaves(String titulo) {
 
     String[] chaves = titulo.split(" ");
 
     // Deixar todas as chaves em minúsculo e com caracteres especiais removidos
     for (int i = 0; i < chaves.length; i++) {
-        String chaveSemAcento = Normalizer.normalize(chaves[i], Normalizer.Form.NFD);
-        Pattern pattern = Pattern.compile("\\p{InCombiningDiacriticalMarks}+");
-        chaves[i] = pattern.matcher(chaveSemAcento).replaceAll("").toLowerCase();
+      String chaveSemAcento = Normalizer.normalize(chaves[i], Normalizer.Form.NFD);
+      Pattern pattern = Pattern.compile("\\p{InCombiningDiacriticalMarks}+");
+      chaves[i] = pattern.matcher(chaveSemAcento).replaceAll("").toLowerCase();
     }
 
     // Converter o array de chaves em uma lista
@@ -358,13 +363,12 @@ public ArrayList<String> getChaves(String titulo) {
 
     // Removendo as palavras que estão em 'words' da 'lista'
     for (String chave : stopwords) {
-        if (lista_chaves.contains(chave)) {
-            lista_chaves.remove(chave);
-        }
+      if (lista_chaves.contains(chave)) {
+        lista_chaves.remove(chave);
+      }
     }
     return lista_chaves;
-}
-
+  }
 
   private void createChaves(ArrayList<String> chaves, int id) throws Exception {
     for (String chave : chaves) {
