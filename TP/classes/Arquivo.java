@@ -14,8 +14,11 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import java.nio.file.*;
 import java.text.Normalizer;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 public class Arquivo<T extends Registro> {
 
@@ -213,7 +216,7 @@ public class Arquivo<T extends Registro> {
           file.writeByte('*');
           file.readShort();
           file.writeLong(proximo_lixo);
-          
+
           // Criamos o registro no endereço do lixo usado
           file.seek(lixo_usado);
           file.writeByte(' ');
@@ -383,9 +386,7 @@ public class Arquivo<T extends Registro> {
     }
   }
 
-  public void printLista() throws Exception {
-    lista.print();
-  }
+ 
 
   public int[] read_chaves(String chave) throws Exception {
     return lista.read(chave);
@@ -439,6 +440,160 @@ public class Arquivo<T extends Registro> {
       System.out.print("/ ISBN: " + obj.getIsbn());
     }
 
+  }
+
+  // -------------------Métodos de Backup------------------//
+
+  public void doBackup() throws Exception {
+    String datahora = pegar_dataHora();
+    List<String> nome_arq= listar_diretorio("dados");
+
+    // Cria o diretório de backup se não existir
+    Path backup = Paths.get("backup/" + datahora);
+    if (!Files.exists(backup)) {
+      Files.createDirectories(backup);
+    }
+
+    // Cria o arquivo de Lista e Diretorio
+    RandomAccessFile lista_backup = new RandomAccessFile("backup/" + datahora + "/" + "lista.backup.db", "rw");
+    RandomAccessFile direto_backup = new RandomAccessFile("backup/" + datahora + "/" + "diretorio.backup.db",
+        "rw");
+
+        List<Integer> tam_original = new ArrayList<>();
+        List<Integer> tam_compac = new ArrayList<>();
+
+    for (String nome : nome_arq) {
+      // Lê o arquivo de dados e seuss bytes
+      byte[] arq_leitura = Files.readAllBytes(Paths.get("dados/" + nome ));
+
+      // Codifica o arquivo e pega o tamanho de bytes
+      byte[] file_codificado = LZW.codifica(arq_leitura);
+      int file_length = file_codificado.length;
+
+      tam_original.add(arq_leitura.length);
+      tam_compac.add(file_codificado.length);
+     
+      // Escreve dados na Lista de Backup
+      lista_backup.writeInt(nome.length());
+      lista_backup.write(nome.getBytes());
+      lista_backup.writeInt(file_length);
+
+      // Escreve o arquivo codificado
+      direto_backup.write(file_codificado);
+    }
+
+    taxa_cp(tam_original,tam_compac);
+    
+
+  
+
+    System.out.println("\nBackup realizado com sucesso!!");
+    // Fecha os arquivos
+    direto_backup.close();
+    lista_backup.close();
+  }
+
+  public void doRestore(String nome_backup) {
+    try {
+      File listaFile = new File("backup/" + nome_backup + "/lista.backup.db");
+      File diretoFile = new File("backup/" +nome_backup + "/diretorio.backup.db");
+
+      // Verifica se os arquivos existem
+      if (!listaFile.exists() || !diretoFile.exists()) {
+        System.out.println("Os arquivos de backup não foram encontrados.");
+        return;
+      }
+
+      // Abre os arquivos de Lista e Diretorio
+      RandomAccessFile lista_backup = new RandomAccessFile(listaFile, "rw");
+      RandomAccessFile direto_backup = new RandomAccessFile(diretoFile, "rw");
+
+      while (lista_backup.getFilePointer() < lista_backup.length()) {
+        // Lê o nome do arquivo
+        int tam_nome = lista_backup.readInt();
+        byte[] nome_arq = new byte[tam_nome];
+        lista_backup.read(nome_arq);
+
+        // Lê o tamanho do arquivo
+        int tam_arq = lista_backup.readInt();
+        byte[] arq_codificado = new byte[tam_arq];
+        direto_backup.read(arq_codificado);
+
+        // Decodifica o arquivo
+        byte[] arq_decodificado = LZW.decodifica(arq_codificado);
+
+        // Cria o diretório se ele não existir
+        Path dirPath = Paths.get("dados/");
+        if (!Files.exists(dirPath)) {
+          Files.createDirectories(dirPath);
+        }
+
+        // Escreve o arquivo decodificado
+        Path filePath = dirPath.resolve(new String(nome_arq));
+        Files.write(filePath, arq_decodificado);
+      }
+
+      // Fecha os arquivos
+      direto_backup.close();
+      lista_backup.close();
+
+      System.out.println("\n Backup(" + nome_backup + ") Restaurado com Sucesso!!");
+
+    } catch (IOException e) {
+      System.out.println("Ocorreu um erro de I/O: " + e.getMessage());
+    } catch (Exception e) {
+      System.out.println("Ocorreu um erro: " + e.getMessage());
+    }
+  }
+
+
+  public List<String> listar_diretorio(String nome_diretorio) {
+
+    Path diretorio = Paths.get(nome_diretorio); // Vai para o diretório 
+    List<String> lista_nomes = new ArrayList<>(); // Cria uma lista para nomes de pastas
+   
+    try {
+      if(nome_diretorio.equals("backup")){
+      lista_nomes = Files.list(diretorio)// Lista os arquivos do diretório
+          .filter(Files::isDirectory)// Filtra apenas as pastas do diretório
+          .map(Path::getFileName)// Pega o nome das pastas
+          .map(Path::toString) // Converte para string
+          .collect(Collectors.toList());// Adiciona na lista
+       }
+       if (nome_diretorio.equals("dados")) {
+
+        lista_nomes = Files.list(diretorio)// Lista os arquivos do diretório
+        .filter(path -> !Files.isDirectory(path)) // Filtra apenas os arquivos do diretório
+        .map(Path::getFileName)// Pega o nome dos arquivos
+        .map(Path::toString) // Converte para string
+        .collect(Collectors.toList());// Adiciona na lista
+       }
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+
+    return lista_nomes;
+  }
+
+  private void taxa_cp(List<Integer> tam_original, List<Integer> tam_compac) {
+    
+    int original = tam_original.stream().mapToInt(Integer::intValue).sum();
+    int compac = tam_compac.stream().mapToInt(Integer::intValue).sum();
+    
+    System.out.print("\n\nTamanho Original: " + original);
+    System.out.println("  Tamanho Compactado: " + compac);
+
+    double taxa = (double) (compac * 100) / original;
+    System.out.println("Taxa de Compressão: " + taxa);
+  }
+
+   
+  private String pegar_dataHora() {
+    // Pega a data e hora atual do sistema
+    LocalDateTime now = LocalDateTime.now();
+    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy-hh-mm");
+    String datahora = now.format(formatter);
+    return datahora;
   }
 
   // REORGANIZAR - VERSÃO QUE REORDENA O ARQUIVO, USANDO INTERCALAÇÃO BALANCEADA

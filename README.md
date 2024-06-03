@@ -25,6 +25,18 @@
 - Adicionalmente, para ficar mais legivel, seguindo as correções da parte 1, criamos o metodo colocar_noLixo() e tirar_doLixo();
 - Alem de corrigir um erro no update de lixos;
 
+### Backup compactado (Parte 3)
+- Nesta parte foram desenvolvidos métodos para fazer e restauras backup dos arquivos de dados, utilizando compactação LZW.
+- Nosso grupo implementou, assim, funções para realizar essa tarefa:
+  - doBackup --> Usando uma lista com os arquivos de dados, faz um backup dos arquivos compactados em LZW, dividindo em um arquivo da lista com o nome e tamanho dos backup e um diretorio com os arquivoss em si;
+  -  doRestore --> Usando os dois arquivoss de backup (Lista, Diretorio), decodifica e restaura eles no arquivos de dados;
+  - listar_pastas --> Cria uma lista das pastas ou arquivos do diretorio em questão;
+  - pegar_dataHora --> Pega e formata da data local do sistema ("dd-MM-yyyy-hh-mm");
+  
+
+- Tambem fizemos uma função para calcular a taxa de compressão (taxa_cp) e leves alterações no Menu;
+
+
 ##  Experiência do Grupo 🔍
 
 ### Espaços Vazios (Parte 1)
@@ -59,6 +71,21 @@
 #### Os resultados foram alcançados?
 \- **Vitor Lucio**: "Não encontramos nenhum erro nos testes realizados, então com base nisso, o objetivo principal foi 100% concluído."
 
+
+### Backup compactado (Parte 3)
+
+####  Vocês implementaram todos os requisitos?
+\- **Vitor Lucio**: " Sim, acreditamos que todos foram implementados"
+
+####  Houve alguma operação mais difícil?
+\- **Vitor Lucio**: “A parte mais dificil foi a função para decodificar e depois restaurar os arquivos de backup.”
+
+####  Vocês enfrentaram algum desafio na implementação?
+\- **Vitor Lucio**: “Nessa parte, a maior dificuldade foi utilizar o codigo de LZW para descompactar. Aparentemente ele estava erRado e eu demorei pra notar que o erro era ele e não à implementação. Além de tentar resolve-lo e não conseguir.”
+
+#### Os resultados foram alcançados?
+\- **Vitor Lucio**: "Não encontramos nenhum erro nos testes realizados, então com base nisso, o objetivo principal foi 100% concluído."
+
 ##  Checklist 📋
 
 ### Espaços Vazios (Parte 1)
@@ -81,9 +108,18 @@
 - [X] Essa busca pode ser feita com mais de uma palavra.
 - [X] As stop words foram removidas de todo o processo.
 - [x] Fez modificação, se alguma, para além dos requisitos mínimos desta tarefa.
-- [x] O trabalho está funcionando corretamente
+- [x] O trabalho está funcionando corretamente.
 - [x] O trabalho está completo.
 - [X] O trabalho é original (100%).
 
+### Backup compactado (Parte 3)
 
+- [X] Há uma rotina de compactação usando o algoritmo LZW para fazer backup dos arquivos.
+- [X] Há uma rotina de descompactação usando o algoritmo LZW para recuperação dos arquivos.
+- [X] O usuário pode escolher a versão a recuperar.
+- [x] O trabalho está funcionando corretamente.
+- [x] O trabalho está completo.
+- [X] O trabalho é original (100%).
+
+- EXTRA: Taxa de compressão alcançada por esse backup ≅ 66,66% 
   

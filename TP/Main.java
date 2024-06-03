@@ -1,10 +1,9 @@
 
 import java.io.*;
-
+import java.util.List;
 import java.util.Scanner;
 
 import classes.Arquivo;
-
 import classes.Livro;
 
 class Main {
@@ -19,22 +18,23 @@ class Main {
 
     Arquivo<Livro> arqLivros;
 
+    
     try {
 
       arqLivros = new Arquivo<>("livros", Livro.class.getConstructor());
+      
       Scanner scan = new Scanner(System.in);
       int pum;
 
       do {
-        System.out.println("\n------------------------");
-        System.out.println("          MENU");
-        System.out.println("------------------------");
+        System.out.println("\n------------------------------------------------");
+        System.out.println("                    MENU");
+        System.out.println("------------------------------------------------");
 
-        System.out.println("1 - Inserir Livro");
-        System.out.println("2 - Excluir Livro");
-        System.out.println("3 - Buscar Livro");
-        System.out.println("4 - Alterar Livro");
-        System.out.println("5 - Imprimir Lista");
+        System.out.println("1 - Inserir Livro       5 - Realizar Backup ");
+        System.out.println("2 - Excluir Livro       6 - Restaurar Backup");
+        System.out.println("3 - Alterar Livro");
+        System.out.println("4 - Buscar Livro\n");
         System.out.println("0 - Sair");
         System.out.println(" ");
 
@@ -89,22 +89,8 @@ class Main {
               System.out.println("Livro de ID " + id + " não encontrado!\n");
 
             break;
+
           case 3:
-            System.out.println("------------------------");
-            System.out.println("     Buscando Livro");
-            System.out.println("------------------------");
-            System.out.print("Chave de Busca: ");
-
-            // Limpar buffer
-            scan.nextLine();
-
-            // ler as chaves e buscar na lista invertida
-            String chave = scan.nextLine();
-            arqLivros.busca_lista(chave);
-
-            break;
-
-          case 4:
             System.out.println("------------------------");
             System.out.println("     Alterar Livro");
             System.out.println("------------------------");
@@ -120,8 +106,8 @@ class Main {
 
               // Limpar buffer
               scan.nextLine();
-
-              System.out.print("Novo nome: ");
+              System.out.print("\nTItulo antigo: " + livrin.getTitulo() + "\n");
+              System.out.print("Novo titulo: ");
               String new_nome = scan.nextLine();
               livrin.setTitulo(new_nome);
 
@@ -130,16 +116,70 @@ class Main {
                 System.out.println("\nLivro alterado com Sucesso!!");
               else
                 System.out.println("\nLivro não encontrado!!");
+            } else {
+              System.out.println("\nLivro não encontrado!!");
             }
 
             break;
 
-          case 5:
+          case 4:
+            System.out.println("------------------------");
+            System.out.println("     Buscando Livro");
+            System.out.println("------------------------");
+            System.out.print("Chave de Busca: ");
 
-            arqLivros.printLista();
+            // Limpar buffer
+            scan.nextLine();
+
+            // ler as chaves e buscar na lista invertida
+            String chave = scan.nextLine();
+            arqLivros.busca_lista(chave);
 
             break;
+
+          case 5:
+            arqLivros.doBackup();
+
+            break;
+
+          case 6:
+
+            System.out.println("------------------------");
+            System.out.println("     Restaurar Backup");
+            System.out.println("------------------------");
+
+            // Criar Lista dos nomes de backups
+            List<String> backups = arqLivros.listar_diretorio("backup");
+            System.out.println("Escolha o Backup que deseja restaurar:\n");
+
+            // Listar os backups
+            int i = 1;
+            for (String backup : backups) {
+              System.out.println(i + ". " + backup);
+              i++;
+            }
+
+            // Escolher o backup
+            System.out.print("\nOpção: ");
+            int opcao =0 ;
+           
+            while (opcao < 1 || opcao > backups.size()) {
+              
+              opcao = scan.nextInt();
+              if(opcao < 1 || opcao > backups.size()){
+                System.out.println("\nOpção inválida!!\n");
+                System.out.print("Opção: ");
+              }
+            }
+           
+
+            // Restaurar o backup
+            arqLivros.doRestore(backups.get(opcao - 1));
+            break;
+
+         
         }
+
       } while (pum != 0);
 
       arqLivros.close();
