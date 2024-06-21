@@ -386,8 +386,6 @@ public class Arquivo<T extends Registro> {
     }
   }
 
- 
-
   public int[] read_chaves(String chave) throws Exception {
     return lista.read(chave);
   }
@@ -446,7 +444,7 @@ public class Arquivo<T extends Registro> {
 
   public void doBackup() throws Exception {
     String datahora = pegar_dataHora();
-    List<String> nome_arq= listar_diretorio("dados");
+    List<String> nome_arq = listar_diretorio("dados");
 
     // Cria o diretório de backup se não existir
     Path backup = Paths.get("backup/" + datahora);
@@ -459,12 +457,12 @@ public class Arquivo<T extends Registro> {
     RandomAccessFile direto_backup = new RandomAccessFile("backup/" + datahora + "/" + "diretorio.backup.db",
         "rw");
 
-        List<Integer> tam_original = new ArrayList<>();
-        List<Integer> tam_compac = new ArrayList<>();
+    List<Integer> tam_original = new ArrayList<>();
+    List<Integer> tam_compac = new ArrayList<>();
 
     for (String nome : nome_arq) {
       // Lê o arquivo de dados e seuss bytes
-      byte[] arq_leitura = Files.readAllBytes(Paths.get("dados/" + nome ));
+      byte[] arq_leitura = Files.readAllBytes(Paths.get("dados/" + nome));
 
       // Codifica o arquivo e pega o tamanho de bytes
       byte[] file_codificado = LZW.codifica(arq_leitura);
@@ -472,7 +470,7 @@ public class Arquivo<T extends Registro> {
 
       tam_original.add(arq_leitura.length);
       tam_compac.add(file_codificado.length);
-     
+
       // Escreve dados na Lista de Backup
       lista_backup.writeInt(nome.length());
       lista_backup.write(nome.getBytes());
@@ -482,10 +480,7 @@ public class Arquivo<T extends Registro> {
       direto_backup.write(file_codificado);
     }
 
-    taxa_cp(tam_original,tam_compac);
-    
-
-  
+    taxa_cp(tam_original, tam_compac);
 
     System.out.println("\nBackup realizado com sucesso!!");
     // Fecha os arquivos
@@ -496,7 +491,7 @@ public class Arquivo<T extends Registro> {
   public void doRestore(String nome_backup) {
     try {
       File listaFile = new File("backup/" + nome_backup + "/lista.backup.db");
-      File diretoFile = new File("backup/" +nome_backup + "/diretorio.backup.db");
+      File diretoFile = new File("backup/" + nome_backup + "/diretorio.backup.db");
 
       // Verifica se os arquivos existem
       if (!listaFile.exists() || !diretoFile.exists()) {
@@ -546,28 +541,27 @@ public class Arquivo<T extends Registro> {
     }
   }
 
-
   public List<String> listar_diretorio(String nome_diretorio) {
 
-    Path diretorio = Paths.get(nome_diretorio); // Vai para o diretório 
+    Path diretorio = Paths.get(nome_diretorio); // Vai para o diretório
     List<String> lista_nomes = new ArrayList<>(); // Cria uma lista para nomes de pastas
-   
+
     try {
-      if(nome_diretorio.equals("backup")){
-      lista_nomes = Files.list(diretorio)// Lista os arquivos do diretório
-          .filter(Files::isDirectory)// Filtra apenas as pastas do diretório
-          .map(Path::getFileName)// Pega o nome das pastas
-          .map(Path::toString) // Converte para string
-          .collect(Collectors.toList());// Adiciona na lista
-       }
-       if (nome_diretorio.equals("dados")) {
+      if (nome_diretorio.equals("backup")) {
+        lista_nomes = Files.list(diretorio)// Lista os arquivos do diretório
+            .filter(Files::isDirectory)// Filtra apenas as pastas do diretório
+            .map(Path::getFileName)// Pega o nome das pastas
+            .map(Path::toString) // Converte para string
+            .collect(Collectors.toList());// Adiciona na lista
+      }
+      if (nome_diretorio.equals("dados")) {
 
         lista_nomes = Files.list(diretorio)// Lista os arquivos do diretório
-        .filter(path -> !Files.isDirectory(path)) // Filtra apenas os arquivos do diretório
-        .map(Path::getFileName)// Pega o nome dos arquivos
-        .map(Path::toString) // Converte para string
-        .collect(Collectors.toList());// Adiciona na lista
-       }
+            .filter(path -> !Files.isDirectory(path)) // Filtra apenas os arquivos do diretório
+            .map(Path::getFileName)// Pega o nome dos arquivos
+            .map(Path::toString) // Converte para string
+            .collect(Collectors.toList());// Adiciona na lista
+      }
     } catch (IOException e) {
       e.printStackTrace();
     }
@@ -576,10 +570,10 @@ public class Arquivo<T extends Registro> {
   }
 
   private void taxa_cp(List<Integer> tam_original, List<Integer> tam_compac) {
-    
+
     int original = tam_original.stream().mapToInt(Integer::intValue).sum();
     int compac = tam_compac.stream().mapToInt(Integer::intValue).sum();
-    
+
     System.out.print("\n\nTamanho Original: " + original);
     System.out.println("  Tamanho Compactado: " + compac);
 
@@ -587,7 +581,6 @@ public class Arquivo<T extends Registro> {
     System.out.println("Taxa de Compressão: " + taxa);
   }
 
-   
   private String pegar_dataHora() {
     // Pega a data e hora atual do sistema
     LocalDateTime now = LocalDateTime.now();

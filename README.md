@@ -36,6 +36,17 @@
 
 - Tambem fizemos uma função para calcular a taxa de compressão (taxa_cp) e leves alterações no Menu;
 
+### Criptografia (Parte 4)
+- Nesta parte foi desenvolvido uma classe para cifrar e decifrar os dados das entidades, feito nos métodos toByteArray() e fromByteArray() da classe Livro.
+
+- Nosso grupo implementou, assim, a classe Criptografia com metodos:
+  - cifrar --> Recebe um array de bytes, cifrando eles usando transposição e substituição com a chave MEDATOTAL;
+
+  - decifrar --> Recebe um array de bytes, decifrando eles usando substituição e transposição com a chave MEDATOTAL;
+
+  - substituicao  --> Aplica uma operação de soma ou subtração a cada byte dos dados com base na chave fornecida. Para cifrar, o valor do byte da chave correspondente é somado ao byte dos dados; para decifrar, o valor é subtraído. A chave é repetida ciclicamente se for mais curta que os dados. Isso altera o valor de cada byte, tornando os dados cifrados.;
+  - transposicao --> Reorganiza os bytes dos dados com base em uma permutação gerada pela chave. Primeiro, um array de posições é criado, contendo índices sequenciais. A chave é então usada para determinar uma permutação destes índices de forma determinística: cada caractere da chave influencia a troca de posições no array. Para cifrar, os dados são reorganizados conforme a nova ordem de índices; para decifrar, o processo é invertido, restaurando a ordem original. Isso embaralha a ordem dos bytes, contribuindo para a segurança da cifragem.;
+  
 
 ##  Experiência do Grupo 🔍
 
@@ -86,6 +97,20 @@
 #### Os resultados foram alcançados?
 \- **Vitor Lucio**: "Não encontramos nenhum erro nos testes realizados, então com base nisso, o objetivo principal foi 100% concluído."
 
+### Criptografia (Parte 4)
+
+####  Vocês implementaram todos os requisitos?
+\- **Vitor Lucio**: " Sim, acreditamos que todos foram implementados"
+
+####  Houve alguma operação mais difícil?
+\- **Vitor Lucio**: “A parte mais dificil foi a função para transposição.”
+
+####  Vocês enfrentaram algum desafio na implementação?
+\- **Vitor Lucio**: “Nessa parte, não tive nenhum desafio que valha a pena constar.”
+
+#### Os resultados foram alcançados?
+\- **Vitor Lucio**: "Não encontramos nenhum erro nos testes realizados, então com base nisso, o objetivo principal foi 100% concluído."
+
 ##  Checklist 📋
 
 ### Espaços Vazios (Parte 1)
@@ -122,4 +147,11 @@
 - [X] O trabalho é original (100%).
 
 - EXTRA: Taxa de compressão alcançada por esse backup ≅ 66,66% 
-  
+
+### Criptografia (Parte 4)
+
+- [X] Há uma função de cifragem em todas as classes de entidades, envolvendo pelo menos duas operações diferentes e usando uma chave criptográfica.
+- [X] Uma das operações de cifragem é baseada na substituição e a outra na transposição.
+- [x] O trabalho está funcionando corretamente.
+- [x] O trabalho está completo.
+- [X] O trabalho é original (100%).

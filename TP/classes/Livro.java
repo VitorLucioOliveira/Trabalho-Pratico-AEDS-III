@@ -60,12 +60,17 @@ public class Livro implements Registro {
     dos.writeUTF(this.isbn);
     dos.writeUTF(this.titulo);
     dos.writeFloat(this.preco);
-    return ba_out.toByteArray();
+
+    byte[] dados =  ba_out.toByteArray();
+    byte[] dados_cifrados = Criptografia.cifrar(dados);
+    return dados_cifrados;
   }
 
   // transformar um registro (vetor de bytes) em um objeto
   public void fromByteArray(byte[] ba) throws Exception {
-    ByteArrayInputStream ba_in = new ByteArrayInputStream(ba);
+    byte[] bad = Criptografia.decifrar(ba);
+
+    ByteArrayInputStream ba_in = new ByteArrayInputStream(bad);
     DataInputStream dis = new DataInputStream(ba_in);
     this.ID = dis.readInt();
     this.isbn = dis.readUTF();
